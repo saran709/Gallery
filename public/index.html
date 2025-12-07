@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SriPhotos Gallery</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Google Sans', 'Roboto', Arial, sans-serif;
+            background: #202124;
+            color: #e8eaed;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 64px;
+            background: #292a2d;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            z-index: 100;
+            border-bottom: 1px solid #3c4043;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 22px;
+            color: #e8eaed;
+            font-weight: 400;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .search-bar {
+            flex: 1;
+            max-width: 720px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .search-bar input {
+            width: 100%;
+            height: 48px;
+            background: #303134;
+            border: none;
+            border-radius: 8px;
+            padding: 0 48px;
+            color: #e8eaed;
+            font-size: 16px;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            background: #3c4043;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9aa0a6;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+            border: none;
+            background: transparent;
+            color: #e8eaed;
+        }
+
+        .icon-btn:hover {
+            background: #3c4043;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 8px;
+            height: 8px;
+            background: #ea4335;
+            border-radius: 50%;
+            display: none;
+        }
+
+        .notification-badge.show {
+            display: block;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.7;
+                transform: scale(1.1);
+            }
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 64px;
+            width: 256px;
+            height: calc(100vh - 64px);
+            background: #292a2d;
+            padding: 8px;
+            overflow-y: auto;
+            border-right: 1px solid #3c4043;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            padding: 12px 16px;
+            border-radius: 24px;
+            cursor: pointer;
+            transition: background 0.2s;
+            color: #e8eaed;
+            text-decoration: none;
+            margin-bottom: 4px;
+        }
+
+        .nav-item:hover {
+            background: #3c4043;
+        }
+
+        .nav-item.active {
+            background: #8ab4f8;
+            color: #202124;
+        }
+
+        .nav-section {
+            margin-top: 24px;
+            padding: 8px 16px;
+            font-size: 14px;
+            color: #9aa0a6;
+            font-weight: 500;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 256px;
+            margin-top: 64px;
+            padding: 32px;
+            min-height: calc(100vh - 64px);
+        }
+
+        /* Empty State / Upload Zone */
+        .upload-zone {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 500px;
+            border: 2px dashed #5f6368;
+            border-radius: 12px;
+            padding: 48px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .upload-zone.drag-over {
+            border-color: #8ab4f8;
+            background: #303134;
+        }
+
+        .upload-illustration {
+            width: 300px;
+            margin-bottom: 32px;
+        }
+
+        .upload-zone h2 {
+            font-size: 28px;
+            font-weight: 400;
+            margin-bottom: 12px;
+            color: #e8eaed;
+        }
+
+        .upload-zone p {
+            font-size: 16px;
+            color: #9aa0a6;
+            margin-bottom: 24px;
+        }
+
+        .upload-btn {
+            background: #8ab4f8;
+            color: #202124;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .upload-btn:hover {
+            background: #aecbfa;
+        }
+
+        .upload-form {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #292a2d;
+            padding: 32px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+            z-index: 1000;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .upload-form.show {
+            display: block;
+        }
+
+        .form-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 999;
+        }
+
+        .form-overlay.show {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #e8eaed;
+            font-size: 14px;
+        }
+
+        .form-group input[type="text"],
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            background: #3c4043;
+            border: 1px solid #5f6368;
+            border-radius: 8px;
+            color: #e8eaed;
+            font-size: 14px;
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #8ab4f8;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+
+        .btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-primary {
+            background: #8ab4f8;
+            color: #202124;
+        }
+
+        .btn-primary:hover {
+            background: #aecbfa;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #8ab4f8;
+            border: 1px solid #5f6368;
+        }
+
+        .btn-secondary:hover {
+            background: #3c4043;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Photo Grid */
+        .photos-container {
+            display: none;
+        }
+
+        .photos-container.show {
+            display: block;
+        }
+
+        .photos-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .photos-header h1 {
+            font-size: 32px;
+            font-weight: 400;
+            color: #e8eaed;
+        }
+
+        .view-options {
+            display: flex;
+            gap: 8px;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 4px;
+        }
+
+        .gallery-grid.list-view {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            grid-template-columns: none;
+        }
+
+        .photo-card {
+            position: relative;
+            aspect-ratio: 1;
+            overflow: hidden;
+            cursor: pointer;
+            background: #3c4043;
+        }
+
+        .gallery-grid.list-view .photo-card {
+            display: flex;
+            align-items: center;
+            aspect-ratio: auto;
+            height: 80px;
+            gap: 12px;
+            padding: 12px;
+        }
+
+        .gallery-grid.list-view .photo-card img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            flex-shrink: 0;
+            border-radius: 4px;
+        }
+
+        .gallery-grid.list-view .photo-info-list {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .gallery-grid.list-view .photo-info-list h3 {
+            color: #e8eaed;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .gallery-grid.list-view .photo-info-list p {
+            color: #9aa0a6;
+            font-size: 13px;
+        }
+
+        .gallery-grid.list-view .photo-overlay {
+            opacity: 0 !important;
+        }
+
+        .gallery-grid.list-view .photo-card:hover {
+            background: #3c4043;
+        }
+
+        .photo-card video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .gallery-grid.list-view .photo-card video {
+            width: 80px;
+            height: 80px;
+            flex-shrink: 0;
+            border-radius: 4px;
+        }
+
+        .video-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #1f2937;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .photo-card:hover {
+            opacity: 0.85;
+        }
+
+        .photo-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.6) 100%);
+            opacity: 0;
+            transition: opacity 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 12px;
+        }
+
+        .photo-card:hover .photo-overlay {
+            opacity: 1;
+        }
+
+        .photo-title {
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .photo-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .delete-btn {
+            background: #ea4335;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .delete-btn:hover {
+            background: #d33828;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #9aa0a6;
+        }
+
+        .spinner {
+            border: 3px solid #3c4043;
+            border-top: 3px solid #8ab4f8;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .message {
+            position: fixed;
+            top: 80px;
+            right: 24px;
+            padding: 16px 24px;
+            border-radius: 8px;
+            background: #303134;
+            color: #e8eaed;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+            z-index: 1001;
+            display: none;
+        }
+
+        .message.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .message.success {
+            background: #137333;
+        }
+
+        .message.error {
+            background: #c5221f;
+        }
+
+        .message.uploading {
+            background: #1a73e8;
+        }
+
+        .message-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .upload-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .upload-progress {
+            font-size: 14px;
+            color: #e8eaed;
+        }
+
+        /* Modal for full image view */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(32,33,36,0.95);
+        }
+
+        .modal-content {
+            margin: auto;
+            display: block;
+            max-width: 90%;
+            max-height: 90%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            color: white;
+            font-size: 36px;
+            cursor: pointer;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .close-modal:hover {
+            background: #3c4043;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 80px;
+            }
+            
+            .main-content {
+                margin-left: 80px;
+            }
+
+            .nav-item span {
+                display: none;
+            }
+
+            .gallery-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 2px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="logo">
+            <div class="logo-icon">
+                <svg width="40" height="40" viewBox="0 0 40 40">
+                    <path fill="#EA4335" d="M20,8 L28,8 C32.4,8 36,11.6 36,16 L36,24 C36,28.4 32.4,32 28,32 L20,32 L20,8 Z"/>
+                    <path fill="#FBBC04" d="M20,8 L12,8 C7.6,8 4,11.6 4,16 L4,24 C4,28.4 7.6,32 12,32 L20,32 L20,8 Z"/>
+                    <circle fill="#4285F4" cx="20" cy="20" r="6"/>
+                </svg>
+            </div>
+            <span>Photos</span>
+        </div>
+        <div class="search-bar">
+            <svg class="search-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+            </svg>
+            <input type="search" placeholder="Search your photos and albums">
+        </div>
+        <div class="header-actions">
+            <button class="icon-btn" onclick="showUploadForm()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                </svg>
+            </button>
+            <button class="icon-btn" id="notificationBtn" style="position: relative;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+                </svg>
+                <span class="notification-badge" id="notificationBadge"></span>
+            </button>
+           
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="nav-item active" onclick="navigateTo('photos')">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+            </svg>
+            <span>Photos</span>
+        </div>
+        <div class="nav-item" onclick="navigateTo('updates')">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+            <span>Updates</span>
+        </div>
+        <div class="nav-section">Collections</div>
+        <div class="nav-item" onclick="navigateTo('albums')">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-1 12H5c-.55 0-1-.45-1-1V9c0-.55.45-1 1-1h14c.55 0 1 .45 1 1v8c0 .55-.45 1-1 1z"/>
+            </svg>
+            <span>Albums</span>
+        </div>
+        <div class="nav-item" onclick="navigateTo('documents')">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2l-5.5 9h11z"/>
+                <circle cx="17.5" cy="17.5" r="4.5"/>
+                <path d="M3 13.5h8v8H3z"/>
+            </svg>
+            <span>Documents</span>
+        </div>
+        <div class="nav-item" onclick="navigateTo('people')">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 12.75c1.63 0 3.07.39 4.24.9 1.08.48 1.76 1.56 1.76 2.73V18H6v-1.61c0-1.18.68-2.26 1.76-2.73 1.17-.52 2.61-.91 4.24-.91zM4 13c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm1.13 1.1c-.37-.06-.74-.1-1.13-.1-.99 0-1.93.21-2.78.58A2.01 2.01 0 0 0 0 16.43V18h4.5v-1.61c0-.83.23-1.61.63-2.29zM20 13c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm4 3.43c0-.81-.48-1.53-1.22-1.85A6.95 6.95 0 0 0 20 14c-.39 0-.76.04-1.13.1.4.68.63 1.46.63 2.29V18H24v-1.57zM12 6c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3z"/>
+            </svg>
+            <span>People</span>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Upload Zone (shown when no photos) -->
+        <div id="uploadZone" class="upload-zone">
+            <svg class="upload-illustration" viewBox="0 0 400 300">
+                <rect fill="#5f6368" x="50" y="100" width="300" height="150" rx="8"/>
+                <rect fill="#8ab4f8" x="80" y="130" width="100" height="80" rx="4"/>
+                <circle fill="#fbbc04" cx="320" cy="140" r="15"/>
+                <path fill="#ffffff" d="M 200 180 Q 220 165, 240 180 L 350 180 L 350 230 L 80 230 L 80 200 Z" opacity="0.7"/>
+            </svg>
+            <h2>Ready to add some media?</h2>
+            <p>Drag photos and videos anywhere to upload</p>
+            <input type="file" id="fileInput" accept="image/*,video/*" multiple>
+            <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                Select from computer
+            </button>
+        </div>
+
+        <!-- Photos Container (shown when photos exist) -->
+        <div id="photosContainer" class="photos-container">
+            <div class="photos-header">
+                <h1>Photos</h1>
+                <div class="view-options">
+                    <button class="icon-btn" id="viewToggleBtn" onclick="toggleViewMode()" title="Toggle grid/list view">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="grid-icon">
+                            <path d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z"/>
+                        </svg>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="list-icon" style="display: none; position: absolute;">
+                            <path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div id="galleryLoading" class="loading">
+                <div class="spinner"></div>
+                <p>Loading photos...</p>
+            </div>
+            <div id="galleryGrid" class="gallery-grid"></div>
+        </div>
+    </div>
+
+    <!-- Upload Form Modal -->
+    <div class="form-overlay" id="formOverlay" onclick="hideUploadForm()"></div>
+    <div class="upload-form" id="uploadForm">
+        <h2 style="margin-bottom: 24px; color: #e8eaed;" id="uploadFormTitle">Upload Photo</h2>
+        <form id="photoForm">
+            <div class="form-group">
+                <label for="title">Title *</label>
+                <input type="text" id="title" name="title" required placeholder="Enter title">
+            </div>
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" placeholder="Enter description (optional)"></textarea>
+            </div>
+            <div class="form-group">
+                <label>File *</label>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('photoFile').click()" style="flex: 1;">
+                        <span id="fileLabel">Choose File</span>
+                    </button>
+                    <span id="fileName" style="color: #9aa0a6; font-size: 14px;"></span>
+                </div>
+                <input type="file" id="photoFile" accept="image/*,video/*" style="display: none;">
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="hideUploadForm()">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="submitBtn">Upload</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Message Toast -->
+    <div id="message" class="message"></div>
+
+    <!-- Image/Video Modal -->
+    <div id="imageModal" class="modal" onclick="closeModal()">
+        <span class="close-modal">&times;</span>
+        <img class="modal-content" id="modalImage">
+        <video class="modal-content" id="modalVideo" controls style="display: none;"></video>
+    </div>
+
+    <script>
+        // Dynamically set API URL based on environment
+        // For Netlify + Render deployment, use the backend URL
+        // For local development, use localhost
+        const API_URL = process.env.REACT_APP_API_URL || 
+                       (window.location.host.includes('localhost') ? 
+                        'http://localhost:4000/api' : 
+                        'https://photo-gallery-api.onrender.com/api'); // Change to your Render URL
+        let selectedFile = null;
+
+        // Load photos on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPhotos();
+            setupDragAndDrop();
+            
+            // Load saved view preference
+            const savedViewMode = localStorage.getItem('photoViewMode');
+            if (savedViewMode === 'list') {
+                toggleViewMode();
+            }
+        });
+
+        // Setup drag and drop
+        function setupDragAndDrop() {
+            const uploadZone = document.getElementById('uploadZone');
+            
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadZone.addEventListener(eventName, preventDefaults, false);
+                document.body.addEventListener(eventName, preventDefaults, false);
+            });
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                uploadZone.addEventListener(eventName, () => {
+                    uploadZone.classList.add('drag-over');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                uploadZone.addEventListener(eventName, () => {
+                    uploadZone.classList.remove('drag-over');
+                }, false);
+            });
+
+            uploadZone.addEventListener('drop', handleDrop, false);
+
+            // File input change
+            document.getElementById('fileInput').addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    selectedFile = e.target.files[0];
+                    document.getElementById('fileName').textContent = selectedFile.name;
+                    document.getElementById('fileLabel').textContent = 'Change Image';
+                    showUploadForm();
+                }
+            });
+        }
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+
+            if (files.length > 0 && files[0].type.startsWith('image/')) {
+                selectedFile = files[0];
+                document.getElementById('fileName').textContent = selectedFile.name;
+                document.getElementById('fileLabel').textContent = 'Change Image';
+                showUploadForm();
+            }
+        }
+
+        // Show upload form
+        function showUploadForm() {
+            document.getElementById('formOverlay').classList.add('show');
+            document.getElementById('uploadForm').classList.add('show');
+            document.getElementById('title').focus();
+        }
+
+        // Hide upload form
+        function hideUploadForm() {
+            document.getElementById('formOverlay').classList.remove('show');
+            document.getElementById('uploadForm').classList.remove('show');
+            document.getElementById('photoForm').reset();
+            document.getElementById('fileName').textContent = '';
+            document.getElementById('fileLabel').textContent = 'Choose Image';
+            selectedFile = null;
+        }
+
+        // Handle upload from header button
+        function showUploadFormWithFilePicker() {
+            document.getElementById('photoFile').click();
+        }
+
+        document.getElementById('photoFile').addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                selectedFile = e.target.files[0];
+                document.getElementById('fileName').textContent = selectedFile.name;
+                document.getElementById('fileLabel').textContent = 'Change Image';
+                if (!document.getElementById('uploadForm').classList.contains('show')) {
+                    showUploadForm();
+                }
+            }
+        });
+
+        // Handle form submission
+        document.getElementById('photoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!selectedFile) {
+                showMessage('Please select an image file', 'error');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('title', document.getElementById('title').value);
+            formData.append('description', document.getElementById('description').value);
+            formData.append('image', selectedFile);
+
+            const submitBtn = document.getElementById('submitBtn');
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Uploading...';
+
+            // Show uploading notification
+            showMessage('Uploading photo...', 'uploading', true);
+
+            try {
+                const response = await fetch(`${API_URL}/photos`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    hideMessage();
+                    showMessage('✓ Photo uploaded successfully!', 'success');
+                    hideUploadForm();
+                    loadPhotos();
+                } else {
+                    throw new Error(data.message || 'Upload failed');
+                }
+            } catch (error) {
+                hideMessage();
+                showMessage('✗ Upload failed: ' + error.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Upload';
+            }
+        });
+
+        // Load all photos
+        async function loadPhotos() {
+            const loadingDiv = document.getElementById('galleryLoading');
+            const galleryDiv = document.getElementById('galleryGrid');
+            const uploadZone = document.getElementById('uploadZone');
+            const photosContainer = document.getElementById('photosContainer');
+
+            loadingDiv.style.display = 'block';
+            galleryDiv.style.display = 'none';
+
+            try {
+                const response = await fetch(`${API_URL}/photos`);
+                const photos = await response.json();
+
+                loadingDiv.style.display = 'none';
+
+                if (photos.length === 0) {
+                    uploadZone.style.display = 'flex';
+                    photosContainer.classList.remove('show');
+                } else {
+                    uploadZone.style.display = 'none';
+                    photosContainer.classList.add('show');
+                    galleryDiv.style.display = 'grid';
+                    displayPhotos(photos);
+                }
+            } catch (error) {
+                loadingDiv.style.display = 'none';
+                showMessage('Error loading photos: ' + error.message, 'error');
+            }
+        }
+
+        // Display photos in gallery
+        function displayPhotos(photos) {
+            const galleryDiv = document.getElementById('galleryGrid');
+            galleryDiv.innerHTML = '';
+
+            photos.forEach(photo => {
+                const card = document.createElement('div');
+                card.className = 'photo-card';
+                
+                // Get current view mode
+                const isListView = galleryDiv.classList.contains('list-view');
+                const isVideo = photo.fileType === 'video';
+                const mediaUrl = `${API_URL}/photos/${photo._id}/image`;
+                const mediaElement = isVideo ? 
+                    `<video src="${mediaUrl}" controls></video>` :
+                    `<img src="${mediaUrl}" alt="${escapeHtml(photo.title)}" onclick="openModal('${mediaUrl}', '${escapeHtml(photo.title)}', ${isVideo})">`;
+                
+                if (isListView) {
+                    // List view layout
+                    card.innerHTML = `
+                        ${mediaElement}
+                        <div class="photo-info-list">
+                            <h3>${escapeHtml(photo.title)}</h3>
+                            <p>${escapeHtml(photo.description || 'No description')}</p>
+                        </div>
+                        <button class="delete-btn" onclick="event.stopPropagation(); deletePhoto('${photo._id}')">
+                            Delete
+                        </button>
+                    `;
+                } else {
+                    // Grid view layout
+                    card.innerHTML = `
+                        ${mediaElement}
+                        ${isVideo ? '<div class="video-badge"><span>▶</span> Video</div>' : ''}
+                        <div class="photo-overlay">
+                            <div class="photo-title">${escapeHtml(photo.title)}</div>
+                            <div class="photo-actions">
+                                <button class="delete-btn" onclick="event.stopPropagation(); deletePhoto('${photo._id}')">
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+                galleryDiv.appendChild(card);
+            });
+        }
+
+        // Toggle view mode
+        function toggleViewMode() {
+            const galleryDiv = document.getElementById('galleryGrid');
+            const gridIcon = document.querySelector('.grid-icon');
+            const listIcon = document.querySelector('.list-icon');
+            
+            galleryDiv.classList.toggle('list-view');
+            gridIcon.style.display = gridIcon.style.display === 'none' ? 'block' : 'none';
+            listIcon.style.display = listIcon.style.display === 'none' ? 'block' : 'none';
+            
+            // Save preference
+            localStorage.setItem('photoViewMode', galleryDiv.classList.contains('list-view') ? 'list' : 'grid');
+        }
+
+        // Delete photo
+        async function deletePhoto(id) {
+            if (!confirm('Move this photo to trash?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/photos/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    showMessage('Photo deleted', 'success');
+                    loadPhotos();
+                } else {
+                    showMessage('Failed to delete photo', 'error');
+                }
+            } catch (error) {
+                showMessage('Error deleting photo: ' + error.message, 'error');
+            }
+        }
+
+        // Show message toast
+        function showMessage(text, type = 'success', hasSpinner = false) {
+            const messageDiv = document.getElementById('message');
+            
+            if (hasSpinner) {
+                messageDiv.innerHTML = `
+                    <div class="message-content">
+                        <div class="upload-spinner"></div>
+                        <span class="upload-progress">${text}</span>
+                    </div>
+                `;
+            } else {
+                messageDiv.innerHTML = `<div class="message-content">${text}</div>`;
+            }
+            
+            messageDiv.className = `message ${type} show`;
+            
+            // Show notification badge
+            if (type !== 'uploading') {
+                showNotificationBadge();
+            }
+            
+            if (!hasSpinner) {
+                setTimeout(() => {
+                    messageDiv.classList.remove('show');
+                }, 3000);
+            }
+        }
+
+        // Show notification badge
+        function showNotificationBadge() {
+            const badge = document.getElementById('notificationBadge');
+            badge.classList.add('show');
+            
+            // Hide after 5 seconds
+            setTimeout(() => {
+                badge.classList.remove('show');
+            }, 5000);
+        }
+
+        // Hide message
+        function hideMessage() {
+            const messageDiv = document.getElementById('message');
+            messageDiv.classList.remove('show');
+        }
+
+        // Modal functions
+        function openModal(mediaSrc, title, isVideo = false) {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImage');
+            const modalVideo = document.getElementById('modalVideo');
+            
+            modal.style.display = 'block';
+            
+            if (isVideo) {
+                modalImg.style.display = 'none';
+                modalVideo.style.display = 'block';
+                modalVideo.src = mediaSrc;
+            } else {
+                modalVideo.style.display = 'none';
+                modalImg.style.display = 'block';
+                modalImg.src = mediaSrc;
+                modalImg.alt = title;
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('imageModal').style.display = 'none';
+        }
+
+        // Navigation function
+        function navigateTo(section) {
+            // Remove active class from all nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // Add active class to clicked item
+            event.currentTarget.classList.add('active');
+
+            // Handle navigation based on section
+            if (section === 'photos') {
+                // Already implemented - just reload photos
+                loadPhotos();
+            } else {
+                // Show message for unimplemented sections
+                showMessage(`${section.charAt(0).toUpperCase() + section.slice(1)} feature coming soon!`, 'success');
+            }
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
